@@ -1,27 +1,27 @@
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href=""><i class="bi bi-file-earmark-pdf-fill me-2"></i> ScaniFly</a>
+<div class="sidebar-header">
+    <div class="sidebar-logo">
+        <i class="bi bi-file-earmark-text-fill"></i>
     </div>
+    <h1 class="sidebar-title">ScaniFly</h1>
 </div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-list-check nav-icon" aria-hidden="true"></span> Proposals
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="history">
-                <span class="bi bi-clock-history nav-icon" aria-hidden="true"></span> History
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="settings">
-                <span class="bi bi-gear-fill nav-icon" aria-hidden="true"></span> Settings
-            </NavLink>
-        </div>
-    </nav>
-</div>
+<ul class="nav-menu">
+    <li class="nav-item">
+        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            <i class="bi bi-inboxes"></i>
+            <span>Proposals</span>
+        </NavLink>
+    </li>
+    <li class="nav-item">
+        <NavLink class="nav-link" href="history">
+            <i class="bi bi-clock-history"></i>
+            <span>History</span>
+        </NavLink>
+    </li>
+    <li class="nav-item">
+        <NavLink class="nav-link" href="settings">
+            <i class="bi bi-gear"></i>
+            <span>Settings</span>
+        </NavLink>
+    </li>
+</ul>

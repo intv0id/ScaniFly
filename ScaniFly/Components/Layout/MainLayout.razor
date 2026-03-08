@@ -2,21 +2,16 @@
 @using ScaniFly.Services
 @inject UpdateService UpdateService
 @inject TrayService TrayService
-@inject IJSRuntime JSRuntime
 
 <div class="page">
-    <div class="sidebar">
+    <aside class="sidebar">
         <NavMenu />
-    </div>
+    </aside>
 
     <main>
-        <div class="top-row px-4">
-            <!-- Empty top row -->
-        </div>
-
-        <article class="content p-0 m-0 h-100">
+        <div class="content-wrapper">
             @Body
-        </article>
+        </div>
     </main>
 </div>
 

@@ -8,92 +8,114 @@
 
 <PageTitle>Proposals - ScaniFly</PageTitle>
 
-<div class="container-fluid h-100 p-0 m-0">
-    <div class="row h-100 m-0">
-        <div class="col-4 bg-light border-end p-0 h-100 overflow-auto">
-            <div class="p-3 border-bottom sticky-top bg-light">
-                <h5 class="mb-0">Proposals</h5>
-                <small class="text-muted">@ProposalStateService.ActiveProposals.Count items pending</small>
-            </div>
+<div class="d-flex h-100 bg-white">
+    <!-- Left Pane: List -->
+    <div class="border-end d-flex flex-column bg-white" style="width: 400px; min-width: 400px; max-width: 400px;">
+        <div class="p-4 border-bottom">
+            <h2 class="h5 mb-1 fw-bold text-dark">Pending Proposals</h2>
+            <p class="text-muted small mb-0">Select a document to review the AI suggestions.</p>
+        </div>
 
+        <div class="flex-grow-1 overflow-auto bg-light p-3">
             @if (ProposalStateService.ActiveProposals.Count == 0)
             {
-                <div class="p-4 text-center text-muted mt-5">
-                    <i class="bi bi-check-circle display-4"></i>
-                    <p class="mt-3">All caught up! Monitoring folder for new scans.</p>
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox fs-1 mb-3 d-block text-secondary"></i>
+                    <p class="fw-medium mb-1">No pending documents.</p>
+                    <small>Monitoring folder for new scans.</small>
                 </div>
             }
             else
             {
-                <div class="list-group list-group-flush">
+                <div class="d-flex flex-column gap-3">
                     @foreach (var proposal in ProposalStateService.ActiveProposals)
                     {
-                        <div class="list-group-item list-group-item-action py-3 @(SelectedProposal?.Id == proposal.Id ? "active" : "")"
-                             @onclick="() => SelectProposal(proposal)" style="cursor: pointer;">
-                            <div class="d-flex w-100 justify-content-between mb-2">
-                                <h6 class="mb-1 text-truncate" title="@proposal.SuggestedTitle">@proposal.SuggestedTitle</h6>
-                            </div>
-                            <p class="mb-1 small text-truncate" title="@proposal.SuggestedDestinationFolder">
-                                <i class="bi bi-folder2-open"></i> @proposal.SuggestedDestinationFolder
-                            </p>
-                            <small class="text-muted d-block mb-2">Original: @Path.GetFileName(proposal.OriginalFilePath)</small>
-                            <div class="btn-group btn-group-sm w-100" role="group">
-                                <button type="button" class="btn btn-outline-success" @onclick="() => AcceptProposal(proposal)" @onclick:stopPropagation="true">
-                                    <i class="bi bi-check2"></i> Accept
-                                </button>
-                                <button type="button" class="btn btn-outline-primary" @onclick="() => EditProposal(proposal)" @onclick:stopPropagation="true">
-                                    <i class="bi bi-pencil"></i> Edit
-                                </button>
+                        var isSelected = SelectedProposal?.Id == proposal.Id;
+                        <div class="card border-0 shadow-sm transition-all @(isSelected ? "border-primary border-2 shadow-md" : "border-gray-200")"
+                             style="cursor: pointer; transition: all 0.2s ease; border-radius: 10px;"
+                             @onclick="() => SelectProposal(proposal)">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-start mb-2 gap-2">
+                                    <i class="bi bi-file-earmark-pdf-fill text-danger mt-1"></i>
+                                    <div class="flex-grow-1 min-w-0">
+                                        <h6 class="mb-1 text-truncate fw-semibold" style="font-size: 0.95rem;" title="@proposal.SuggestedTitle">
+                                            @proposal.SuggestedTitle
+                                        </h6>
+                                        <p class="mb-0 text-muted small text-truncate" title="@proposal.SuggestedDestinationFolder">
+                                            <i class="bi bi-folder me-1"></i>@proposal.SuggestedDestinationFolder
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2 mt-3">
+                                    <button class="btn btn-primary btn-sm flex-grow-1 fw-medium" @onclick="() => AcceptProposal(proposal)" @onclick:stopPropagation="true">
+                                        Accept
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm flex-grow-1 fw-medium" @onclick="() => EditProposal(proposal)" @onclick:stopPropagation="true">
+                                        Edit
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     }
                 </div>
             }
         </div>
+    </div>
 
-        <div class="col-8 p-0 h-100 bg-secondary d-flex align-items-center justify-content-center">
-            @if (SelectedProposal != null)
-            {
-                <div class="w-100 h-100 d-flex flex-column">
-                    <div class="bg-dark text-white p-2 d-flex justify-content-between align-items-center shadow-sm z-index-1">
-                        <span class="text-truncate">Preview: @SelectedProposal.OriginalFilePath</span>
-                        @if(IsEditing)
-                        {
-                            <div class="input-group input-group-sm w-50">
-                                <span class="input-group-text">Name</span>
-                                <input type="text" class="form-control" @bind="EditTitle">
-                                <span class="input-group-text">Path</span>
-                                <input type="text" class="form-control" @bind="EditDestination">
-                                <button class="btn btn-success" @onclick="SaveEdit"><i class="bi bi-save"></i></button>
-                                <button class="btn btn-danger" @onclick="CancelEdit"><i class="bi bi-x"></i></button>
-                            </div>
-                        }
+    <!-- Right Pane: Preview -->
+    <div class="flex-grow-1 d-flex flex-column bg-light">
+        @if (SelectedProposal != null)
+        {
+            <div class="bg-white border-bottom p-3 px-4 d-flex justify-content-between align-items-center shadow-sm" style="z-index: 10;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-light p-2 rounded text-secondary">
+                        <i class="bi bi-file-earmark-text fs-5"></i>
                     </div>
-                    <div class="flex-grow-1 bg-white position-relative">
-                        @if (File.Exists(SelectedProposal.OriginalFilePath))
-                        {
-                            <!-- Use API Controller to stream file avoiding SignalR base64 bottlenecks -->
-                            <iframe src="/api/pdf/preview/@SelectedProposal.Id" class="w-100 h-100 border-0"></iframe>
-                        }
-                        else
-                        {
-                            <div class="w-100 h-100 d-flex flex-column justify-content-center align-items-center text-muted">
-                                <i class="bi bi-exclamation-triangle display-1 mb-3"></i>
-                                <p>File not found at path</p>
-                                <small>@SelectedProposal.OriginalFilePath</small>
-                            </div>
-                        }
+                    <div>
+                        <h6 class="mb-0 fw-bold">@SelectedProposal.SuggestedTitle</h6>
+                        <small class="text-muted">Original: @Path.GetFileName(SelectedProposal.OriginalFilePath)</small>
                     </div>
                 </div>
-            }
-            else
-            {
-                <div class="text-white-50 text-center">
-                    <i class="bi bi-file-earmark-pdf display-1"></i>
-                    <p class="mt-3">Select a proposal to preview the document.</p>
+
+                @if(IsEditing)
+                {
+                    <div class="d-flex gap-2 align-items-center bg-light p-2 rounded border">
+                        <input type="text" class="form-control form-control-sm border-0 shadow-none" style="width: 200px;" @bind="EditTitle" placeholder="Title">
+                        <div class="vr"></div>
+                        <input type="text" class="form-control form-control-sm border-0 shadow-none" style="width: 250px;" @bind="EditDestination" placeholder="Destination Folder">
+                        <button class="btn btn-success btn-sm ms-2 px-3" @onclick="SaveEdit">Save</button>
+                        <button class="btn btn-light btn-sm px-3 border" @onclick="CancelEdit">Cancel</button>
+                    </div>
+                }
+            </div>
+
+            <div class="flex-grow-1 position-relative p-4 d-flex align-items-center justify-content-center" style="background-color: #e5e7eb;">
+                @if (File.Exists(SelectedProposal.OriginalFilePath))
+                {
+                    <div class="w-100 h-100 shadow-lg" style="border-radius: 8px; overflow: hidden; max-width: 1200px;">
+                        <iframe src="/api/pdf/preview/@SelectedProposal.Id" class="w-100 h-100 border-0 bg-white"></iframe>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted">
+                        <i class="bi bi-file-earmark-x display-1 mb-3"></i>
+                        <p class="fs-5">File not found</p>
+                        <small>@SelectedProposal.OriginalFilePath</small>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="h-100 d-flex flex-column align-items-center justify-content-center text-muted">
+                <div class="bg-white p-4 rounded-circle shadow-sm mb-4">
+                    <i class="bi bi-eye text-primary" style="font-size: 3rem;"></i>
                 </div>
-            }
-        </div>
+                <h4 class="fw-semibold text-dark">Preview Panel</h4>
+                <p>Select a document from the left to view its contents.</p>
+            </div>
+        }
     </div>
 </div>
 
@@ -133,12 +155,10 @@
         {
             if (File.Exists(proposal.OriginalFilePath))
             {
-                // Sanitize Path Traversal
                 string sanitizedDest = proposal.SuggestedDestinationFolder.Replace("..", "").TrimStart('\\', '/');
                 string targetDir = Path.GetFullPath(Path.Combine(RootOutputDir, sanitizedDest));
 
-                // Ensure it's still within root (extra safety)
-                if (!targetDir.StartsWith(Path.GetFullPath(RootOutputDir)))
+                if (!targetDir.StartsWith(Path.GetFullPath(RootOutputDir) + Path.DirectorySeparatorChar))
                 {
                     targetDir = Path.GetFullPath(RootOutputDir);
                 }
@@ -148,7 +168,6 @@
                     Directory.CreateDirectory(targetDir);
                 }
 
-                // Ensure .pdf extension
                 string finalTitle = proposal.SuggestedTitle;
                 if (!finalTitle.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
                 {
@@ -158,7 +177,6 @@
 
                 string targetPath = Path.Combine(targetDir, finalTitle);
 
-                // Handle Collisions
                 int counter = 1;
                 while (File.Exists(targetPath))
                 {

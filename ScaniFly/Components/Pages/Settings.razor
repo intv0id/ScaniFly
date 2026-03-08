@@ -9,78 +9,88 @@
 
 <PageTitle>Settings - ScaniFly</PageTitle>
 
-<div class="settings-container p-4">
-    <h1 class="mb-4">Settings</h1>
+<div class="px-5 py-4 w-100" style="max-width: 900px; margin: 0 auto;">
+    <h2 class="mb-4" style="font-weight: 600; color: var(--text-primary);">Settings</h2>
 
     @if (ShowOllamaWarning)
     {
-        <div class="alert alert-warning" role="alert">
-            <i class="bi bi-exclamation-triangle-fill"></i> Ollama is not running on localhost:11434.
-            <a href="https://ollama.com/download" target="_blank" class="alert-link">Click here to download or start it.</a>
+        <div class="alert alert-warning d-flex align-items-center shadow-sm border-warning mb-4" role="alert" style="background-color: var(--warning-bg); color: var(--warning-text);">
+            <i class="bi bi-exclamation-triangle-fill me-3 fs-5"></i>
+            <div>
+                Ollama is not running.
+                <a href="https://ollama.com/download" target="_blank" class="alert-link ms-1">Click here to download or start it.</a>
+            </div>
         </div>
     }
 
     @if (ShowSuccessMessage)
     {
-        <div class="alert alert-success" role="alert">
-            Settings saved successfully!
+        <div class="alert alert-success d-flex align-items-center shadow-sm mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-3 fs-5"></i>
+            <div>Settings saved successfully!</div>
         </div>
     }
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Directory Configuration</h5>
+    <div class="card mb-4 border-0 shadow-sm" style="border-radius: 12px;">
+        <div class="card-body p-4">
+            <h5 class="card-title mb-4" style="font-weight: 600;">Directory Configuration</h5>
 
-            <div class="mb-3">
-                <label for="monitoredDir" class="form-label">Monitored Directory</label>
+            <div class="mb-4">
+                <label for="monitoredDir" class="form-label text-muted small fw-bold mb-2">Monitored Directory</label>
                 <div class="input-group">
-                    <input type="text" class="form-control" id="monitoredDir" @bind="ViewModel.MonitoredDirectory" placeholder="Select the folder where new scanned PDFs will appear">
-                    <button class="btn btn-outline-secondary" type="button" @onclick="BrowseMonitoredDirectory">Browse</button>
+                    <input type="text" class="form-control bg-light" id="monitoredDir" @bind="ViewModel.MonitoredDirectory" placeholder="Select the folder where new scanned PDFs will appear">
+                    <button class="btn btn-light border px-4 fw-medium text-dark hover-bg-gray" type="button" @onclick="BrowseMonitoredDirectory">Browse</button>
                 </div>
+                <div class="form-text mt-2 text-muted">The folder where new scanned PDFs will appear.</div>
             </div>
 
-            <div class="mb-3">
-                <label for="outputDir" class="form-label">Default Output Directory</label>
+            <div class="mb-2">
+                <label for="outputDir" class="form-label text-muted small fw-bold mb-2">Default Output Directory</label>
                 <div class="input-group">
-                    <input type="text" class="form-control" id="outputDir" @bind="ViewModel.OutputDirectory" placeholder="Select the root folder where organized documents will be moved">
-                    <button class="btn btn-outline-secondary" type="button" @onclick="BrowseOutputDirectory">Browse</button>
+                    <input type="text" class="form-control bg-light" id="outputDir" @bind="ViewModel.OutputDirectory" placeholder="Select the root folder where organized documents will be moved">
+                    <button class="btn btn-light border px-4 fw-medium text-dark hover-bg-gray" type="button" @onclick="BrowseOutputDirectory">Browse</button>
                 </div>
+                <div class="form-text mt-2 text-muted">The root folder where organized documents will be moved.</div>
             </div>
         </div>
     </div>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">AI Configuration</h5>
+    <div class="card mb-4 border-0 shadow-sm" style="border-radius: 12px;">
+        <div class="card-body p-4">
+            <h5 class="card-title mb-4" style="font-weight: 600;">AI Configuration</h5>
 
-            <div class="mb-3">
-                <label for="ocrMethod" class="form-label">OCR Method</label>
-                <select class="form-select" id="ocrMethod" @bind="ViewModel.OcrMethod">
-                    <option value="Vision LLM">Vision LLM (e.g. LLaVA - Requires Ollama Vision Model)</option>
+            <div class="mb-4">
+                <label for="ocrMethod" class="form-label text-muted small fw-bold mb-2">OCR Method</label>
+                <select class="form-select bg-light" id="ocrMethod" @bind="ViewModel.OcrMethod">
+                    <option value="Vision LLM">Vision LLM (e.g. LLaVA - Requires Ollama)</option>
                     <option value="Tesseract">Tesseract OCR (Standard text LLM)</option>
                     <option value="Native OS">Native OS OCR (Windows/Mac API)</option>
                 </select>
-                <div class="form-text">How text is extracted from scanned images.</div>
+                <div class="form-text mt-2 text-muted">How text is extracted from scanned images.</div>
             </div>
 
-            <div class="mb-3">
-                <label for="ollamaModel" class="form-label">Ollama Model</label>
+            <div class="mb-2">
+                <label for="ollamaModel" class="form-label text-muted small fw-bold mb-2">Ollama Model <span class="badge bg-secondary ms-2 fw-normal" style="font-size: 0.7rem;">Fetched locally</span></label>
                 <div class="d-flex gap-2 align-items-center">
-                    <select class="form-select" id="ollamaModel" @bind="ViewModel.OllamaModel">
+                    <select class="form-select bg-light" id="ollamaModel" @bind="ViewModel.OllamaModel">
                         <option value="">Select a model...</option>
                         @foreach (var model in AvailableModels)
                         {
                             <option value="@model">@model</option>
                         }
                     </select>
-                    <button class="btn btn-sm btn-outline-secondary" @onclick="CheckOllamaStatus"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                    <button class="btn btn-light border px-3" @onclick="CheckOllamaStatus" title="Refresh Models"><i class="bi bi-arrow-clockwise"></i></button>
                 </div>
-                <div class="form-text">The local LLM used to classify and rename documents. Fetched directly from your local Ollama daemon.</div>
+                <div class="form-text mt-2 text-muted">The local LLM used to classify and rename documents.</div>
             </div>
         </div>
     </div>
 
-    <button class="btn btn-primary" @onclick="SaveConfiguration">Save Configuration</button>
+    <div class="d-flex justify-content-end mb-5">
+        <button class="btn btn-primary px-4 py-2" @onclick="SaveConfiguration" style="border-radius: 8px;">
+            <span class="fw-medium">Save Configuration</span>
+        </button>
+    </div>
 </div>
 
 @code {
