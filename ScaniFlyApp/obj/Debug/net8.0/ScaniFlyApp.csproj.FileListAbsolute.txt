@@ -1,0 +1,12 @@
+/app/ScaniFlyApp/bin/Debug/net8.0/ScaniFlyApp.deps.json
+/app/ScaniFlyApp/bin/Debug/net8.0/ScaniFlyApp.dll
+/app/ScaniFlyApp/bin/Debug/net8.0/ScaniFlyApp.pdb
+/app/ScaniFlyApp/obj/Debug/net8.0/ScaniFlyApp.GeneratedMSBuildEditorConfig.editorconfig
+/app/ScaniFlyApp/obj/Debug/net8.0/ScaniFlyApp.AssemblyInfoInputs.cache
+/app/ScaniFlyApp/obj/Debug/net8.0/ScaniFlyApp.AssemblyInfo.cs
+/app/ScaniFlyApp/obj/Debug/net8.0/ScaniFlyApp.csproj.CoreCompileInputs.cache
+/app/ScaniFlyApp/obj/Debug/net8.0/ScaniFlyApp.sourcelink.json
+/app/ScaniFlyApp/obj/Debug/net8.0/ScaniFlyApp.dll
+/app/ScaniFlyApp/obj/Debug/net8.0/refint/ScaniFlyApp.dll
+/app/ScaniFlyApp/obj/Debug/net8.0/ScaniFlyApp.pdb
+/app/ScaniFlyApp/obj/Debug/net8.0/ref/ScaniFlyApp.dll

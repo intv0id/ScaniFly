@@ -1,0 +1,26 @@
+name: Update Docs & Screenshots
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches: [ "main" ]
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+    - uses: actions/checkout@v3
+    - name: Inject Mock Screenshots to README
+      run: |
+        # In a real scenario, UI tests like Playwright would generate these.
+        # We mock this by ensuring the README links to placeholder static paths.
+        echo "Updating README with standard screenshot paths..."
+        sed -i 's|<!-- SCREENSHOT_PLACEHOLDER -->|![Settings View](docs/settings.png)\n![Proposals View](docs/proposals.png)|g' README.md
+    - name: Commit changes
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: "docs: Auto-update screenshots in README"
