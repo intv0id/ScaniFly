@@ -31,7 +31,7 @@ jobs:
           <html>
           <head>
               <title>ScaniFly - Organize your scans</title>
-              <style>body { font-family: sans-serif; text-align: center; padding: 50px; } .btn { padding: 10px 20px; background: #0d6efd; color: white; text-decoration: none; border-radius: 5px; } .warning { margin-top: 30px; padding: 15px; background: #fff3cd; color: #856404; }</style>
+              <style>body { font-family: sans-serif; text-align: center; padding: 50px; } .btn { padding: 10px 20px; background: #0d6efd; color: white; text-decoration: none; border-radius: 5px; } .warning { margin-top: 30px; padding: 15px; background: #fff3cd; color: #856404; } .screens { margin-top: 40px; display: flex; justify-content: center; gap: 20px; } .screens img { width: 400px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }</style>
           </head>
           <body>
               <h1>ScaniFly</h1>
@@ -39,6 +39,10 @@ jobs:
               <h2>Download Latest Version</h2>
               <a href="https://github.com/YOUR_ORG/ScaniFly/releases/latest/download/ScaniFly-Setup.exe" class="btn">Download for Windows</a>
               <a href="https://github.com/YOUR_ORG/ScaniFly/releases/latest/download/ScaniFly.dmg" class="btn" style="margin-left: 10px;">Download for macOS</a>
+              <div class="screens">
+                  <img src="https://raw.githubusercontent.com/${{ github.repository }}/main/docs/settings.png" alt="Settings Page">
+                  <img src="https://raw.githubusercontent.com/${{ github.repository }}/main/docs/proposals.png" alt="Proposals Page">
+              </div>
               <div class="warning">
                   <strong>⚠️ Dependency Warning:</strong> ScaniFly requires <a href="https://ollama.com">Ollama</a> to be installed and running locally for AI capabilities.
               </div>

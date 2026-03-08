@@ -1,0 +1,158 @@
+@page "/settings"
+@using ScaniFly.ViewModels
+@using ScaniFly.Services
+@using ScaniFly.Models
+@using ElectronNET.API
+@using ElectronNET.API.Entities
+@inject SettingsService SettingsService
+@inject OllamaService OllamaService
+
+<PageTitle>Settings - ScaniFly</PageTitle>
+
+<div class="settings-container p-4">
+    <h1 class="mb-4">Settings</h1>
+
+    @if (ShowOllamaWarning)
+    {
+        <div class="alert alert-warning" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i> Ollama is not running on localhost:11434.
+            <a href="https://ollama.com/download" target="_blank" class="alert-link">Click here to download or start it.</a>
+        </div>
+    }
+
+    @if (ShowSuccessMessage)
+    {
+        <div class="alert alert-success" role="alert">
+            Settings saved successfully!
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Directory Configuration</h5>
+
+            <div class="mb-3">
+                <label for="monitoredDir" class="form-label">Monitored Directory</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="monitoredDir" @bind="ViewModel.MonitoredDirectory" placeholder="Select the folder where new scanned PDFs will appear">
+                    <button class="btn btn-outline-secondary" type="button" @onclick="BrowseMonitoredDirectory">Browse</button>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="outputDir" class="form-label">Default Output Directory</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="outputDir" @bind="ViewModel.OutputDirectory" placeholder="Select the root folder where organized documents will be moved">
+                    <button class="btn btn-outline-secondary" type="button" @onclick="BrowseOutputDirectory">Browse</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">AI Configuration</h5>
+
+            <div class="mb-3">
+                <label for="ocrMethod" class="form-label">OCR Method</label>
+                <select class="form-select" id="ocrMethod" @bind="ViewModel.OcrMethod">
+                    <option value="Vision LLM">Vision LLM (e.g. LLaVA - Requires Ollama Vision Model)</option>
+                    <option value="Tesseract">Tesseract OCR (Standard text LLM)</option>
+                    <option value="Native OS">Native OS OCR (Windows/Mac API)</option>
+                </select>
+                <div class="form-text">How text is extracted from scanned images.</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="ollamaModel" class="form-label">Ollama Model</label>
+                <div class="d-flex gap-2 align-items-center">
+                    <select class="form-select" id="ollamaModel" @bind="ViewModel.OllamaModel">
+                        <option value="">Select a model...</option>
+                        @foreach (var model in AvailableModels)
+                        {
+                            <option value="@model">@model</option>
+                        }
+                    </select>
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="CheckOllamaStatus"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                </div>
+                <div class="form-text">The local LLM used to classify and rename documents. Fetched directly from your local Ollama daemon.</div>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn btn-primary" @onclick="SaveConfiguration">Save Configuration</button>
+</div>
+
+@code {
+    private SettingsViewModel ViewModel = new();
+    private List<string> AvailableModels = new();
+    private bool ShowOllamaWarning = false;
+    private bool ShowSuccessMessage = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var settings = await SettingsService.GetSettingsAsync();
+        ViewModel.LoadFromSettings(settings);
+        await CheckOllamaStatus();
+    }
+
+    private async Task CheckOllamaStatus()
+    {
+        ShowOllamaWarning = !(await OllamaService.IsRunningAsync());
+        if (!ShowOllamaWarning)
+        {
+            AvailableModels = await OllamaService.GetAvailableModelsAsync();
+        }
+        else
+        {
+            AvailableModels.Clear();
+        }
+    }
+
+    private async Task SaveConfiguration()
+    {
+        await SettingsService.SaveSettingsAsync(ViewModel.ToSettings());
+        ShowSuccessMessage = true;
+        StateHasChanged();
+
+        await Task.Delay(3000);
+        ShowSuccessMessage = false;
+        StateHasChanged();
+    }
+
+    private async Task BrowseMonitoredDirectory()
+    {
+        if (HybridSupport.IsElectronActive)
+        {
+            var mainWindow = Electron.WindowManager.BrowserWindows.First();
+            var options = new OpenDialogOptions
+            {
+                Properties = new OpenDialogProperty[] { OpenDialogProperty.openDirectory }
+            };
+
+            string[] result = await Electron.Dialog.ShowOpenDialogAsync(mainWindow, options);
+            if (result.Length > 0)
+            {
+                ViewModel.MonitoredDirectory = result[0];
+            }
+        }
+    }
+
+    private async Task BrowseOutputDirectory()
+    {
+        if (HybridSupport.IsElectronActive)
+        {
+            var mainWindow = Electron.WindowManager.BrowserWindows.First();
+            var options = new OpenDialogOptions
+            {
+                Properties = new OpenDialogProperty[] { OpenDialogProperty.openDirectory }
+            };
+
+            string[] result = await Electron.Dialog.ShowOpenDialogAsync(mainWindow, options);
+            if (result.Length > 0)
+            {
+                ViewModel.OutputDirectory = result[0];
+            }
+        }
+    }
+}

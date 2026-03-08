@@ -1,0 +1,76 @@
+@page "/history"
+@using ScaniFly.Models
+@using ScaniFly.Services
+@using ElectronNET.API
+@inject HistoryService HistoryService
+
+<PageTitle>History - ScaniFly</PageTitle>
+
+<div class="container p-4">
+    <h1 class="mb-4">Processing History</h1>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Original File</th>
+                    <th scope="col">New Name</th>
+                    <th scope="col">Destination Folder</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (ProcessedHistory == null)
+                {
+                     <tr><td colspan="5" class="text-center py-4 text-muted">Loading...</td></tr>
+                }
+                else if (ProcessedHistory.Count == 0)
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            No history found. Processed documents will appear here.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in ProcessedHistory.OrderByDescending(h => h.ProcessedAt))
+                    {
+                        <tr>
+                            <td>@item.ProcessedAt.ToString("g")</td>
+                            <td><span class="text-truncate d-inline-block" style="max-width: 150px;" title="@Path.GetFileName(item.OriginalFilePath)">@Path.GetFileName(item.OriginalFilePath)</span></td>
+                            <td>@item.SuggestedTitle</td>
+                            <td><span class="text-truncate d-inline-block" style="max-width: 200px;" title="@item.SuggestedDestinationFolder">@item.SuggestedDestinationFolder</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-secondary" title="Open Folder" @onclick="() => OpenFolder(item.SuggestedDestinationFolder)">
+                                    <i class="bi bi-folder2-open"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    private List<DocumentProposal>? ProcessedHistory;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ProcessedHistory = await HistoryService.GetHistoryAsync();
+    }
+
+    private async Task OpenFolder(string folderPath)
+    {
+        if (HybridSupport.IsElectronActive)
+        {
+            // In a real scenario we need the root output dir to build the absolute path here,
+            // or store absolute path in history. For simplicity we assume OS handles it or
+            // it's an absolute path.
+            await Electron.Shell.OpenPathAsync(folderPath);
+        }
+    }
+}

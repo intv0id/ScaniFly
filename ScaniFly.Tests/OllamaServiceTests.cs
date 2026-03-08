@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using ScaniFly.Services;
 using Xunit;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ScaniFly.Tests;
 
@@ -37,7 +39,7 @@ public class OllamaServiceTests
                 Content = new StringContent(jsonResponse)
             });
 
-        var httpClient = new HttpClient(handlerMock.Object);
+        var httpClient = new HttpClient(handlerMock.Object) { BaseAddress = new Uri("http://localhost:11434") };
         var service = new OllamaService(httpClient);
 
         // Act

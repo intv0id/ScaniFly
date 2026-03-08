@@ -1,0 +1,207 @@
+@page "/"
+@using ScaniFly.Models
+@using ScaniFly.Services
+@inject ProposalStateService ProposalStateService
+@inject HistoryService HistoryService
+@inject SettingsService SettingsService
+@implements IDisposable
+
+<PageTitle>Proposals - ScaniFly</PageTitle>
+
+<div class="container-fluid h-100 p-0 m-0">
+    <div class="row h-100 m-0">
+        <div class="col-4 bg-light border-end p-0 h-100 overflow-auto">
+            <div class="p-3 border-bottom sticky-top bg-light">
+                <h5 class="mb-0">Proposals</h5>
+                <small class="text-muted">@ProposalStateService.ActiveProposals.Count items pending</small>
+            </div>
+
+            @if (ProposalStateService.ActiveProposals.Count == 0)
+            {
+                <div class="p-4 text-center text-muted mt-5">
+                    <i class="bi bi-check-circle display-4"></i>
+                    <p class="mt-3">All caught up! Monitoring folder for new scans.</p>
+                </div>
+            }
+            else
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var proposal in ProposalStateService.ActiveProposals)
+                    {
+                        <div class="list-group-item list-group-item-action py-3 @(SelectedProposal?.Id == proposal.Id ? "active" : "")"
+                             @onclick="() => SelectProposal(proposal)" style="cursor: pointer;">
+                            <div class="d-flex w-100 justify-content-between mb-2">
+                                <h6 class="mb-1 text-truncate" title="@proposal.SuggestedTitle">@proposal.SuggestedTitle</h6>
+                            </div>
+                            <p class="mb-1 small text-truncate" title="@proposal.SuggestedDestinationFolder">
+                                <i class="bi bi-folder2-open"></i> @proposal.SuggestedDestinationFolder
+                            </p>
+                            <small class="text-muted d-block mb-2">Original: @Path.GetFileName(proposal.OriginalFilePath)</small>
+                            <div class="btn-group btn-group-sm w-100" role="group">
+                                <button type="button" class="btn btn-outline-success" @onclick="() => AcceptProposal(proposal)" @onclick:stopPropagation="true">
+                                    <i class="bi bi-check2"></i> Accept
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" @onclick="() => EditProposal(proposal)" @onclick:stopPropagation="true">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="col-8 p-0 h-100 bg-secondary d-flex align-items-center justify-content-center">
+            @if (SelectedProposal != null)
+            {
+                <div class="w-100 h-100 d-flex flex-column">
+                    <div class="bg-dark text-white p-2 d-flex justify-content-between align-items-center shadow-sm z-index-1">
+                        <span class="text-truncate">Preview: @SelectedProposal.OriginalFilePath</span>
+                        @if(IsEditing)
+                        {
+                            <div class="input-group input-group-sm w-50">
+                                <span class="input-group-text">Name</span>
+                                <input type="text" class="form-control" @bind="EditTitle">
+                                <span class="input-group-text">Path</span>
+                                <input type="text" class="form-control" @bind="EditDestination">
+                                <button class="btn btn-success" @onclick="SaveEdit"><i class="bi bi-save"></i></button>
+                                <button class="btn btn-danger" @onclick="CancelEdit"><i class="bi bi-x"></i></button>
+                            </div>
+                        }
+                    </div>
+                    <div class="flex-grow-1 bg-white position-relative">
+                        @if (File.Exists(SelectedProposal.OriginalFilePath))
+                        {
+                            <!-- Use API Controller to stream file avoiding SignalR base64 bottlenecks -->
+                            <iframe src="/api/pdf/preview/@SelectedProposal.Id" class="w-100 h-100 border-0"></iframe>
+                        }
+                        else
+                        {
+                            <div class="w-100 h-100 d-flex flex-column justify-content-center align-items-center text-muted">
+                                <i class="bi bi-exclamation-triangle display-1 mb-3"></i>
+                                <p>File not found at path</p>
+                                <small>@SelectedProposal.OriginalFilePath</small>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-white-50 text-center">
+                    <i class="bi bi-file-earmark-pdf display-1"></i>
+                    <p class="mt-3">Select a proposal to preview the document.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private DocumentProposal? SelectedProposal;
+    private bool IsEditing = false;
+    private string EditTitle = "";
+    private string EditDestination = "";
+    private string RootOutputDir = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        ProposalStateService.OnStateChanged += StateHasChanged;
+        var settings = await SettingsService.GetSettingsAsync();
+        RootOutputDir = settings.OutputDirectory;
+
+        if (ProposalStateService.ActiveProposals.Any())
+        {
+            SelectedProposal = ProposalStateService.ActiveProposals.First();
+        }
+    }
+
+    public void Dispose()
+    {
+        ProposalStateService.OnStateChanged -= StateHasChanged;
+    }
+
+    private void SelectProposal(DocumentProposal proposal)
+    {
+        SelectedProposal = proposal;
+        IsEditing = false;
+    }
+
+    private async Task AcceptProposal(DocumentProposal proposal)
+    {
+        try
+        {
+            if (File.Exists(proposal.OriginalFilePath))
+            {
+                // Sanitize Path Traversal
+                string sanitizedDest = proposal.SuggestedDestinationFolder.Replace("..", "").TrimStart('\\', '/');
+                string targetDir = Path.GetFullPath(Path.Combine(RootOutputDir, sanitizedDest));
+
+                // Ensure it's still within root (extra safety)
+                if (!targetDir.StartsWith(Path.GetFullPath(RootOutputDir)))
+                {
+                    targetDir = Path.GetFullPath(RootOutputDir);
+                }
+
+                if (!Directory.Exists(targetDir))
+                {
+                    Directory.CreateDirectory(targetDir);
+                }
+
+                // Ensure .pdf extension
+                string finalTitle = proposal.SuggestedTitle;
+                if (!finalTitle.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                {
+                    finalTitle += ".pdf";
+                    proposal.SuggestedTitle = finalTitle;
+                }
+
+                string targetPath = Path.Combine(targetDir, finalTitle);
+
+                // Handle Collisions
+                int counter = 1;
+                while (File.Exists(targetPath))
+                {
+                    string nameWithoutExt = Path.GetFileNameWithoutExtension(finalTitle);
+                    targetPath = Path.Combine(targetDir, $"{nameWithoutExt} ({counter}).pdf");
+                    counter++;
+                }
+
+                File.Move(proposal.OriginalFilePath, targetPath);
+            }
+
+            await HistoryService.AddToHistoryAsync(proposal);
+            ProposalStateService.RemoveProposal(proposal);
+
+            if (SelectedProposal == proposal)
+                SelectedProposal = ProposalStateService.ActiveProposals.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error accepting proposal: {ex.Message}");
+        }
+    }
+
+    private void EditProposal(DocumentProposal proposal)
+    {
+        SelectProposal(proposal);
+        EditTitle = proposal.SuggestedTitle;
+        EditDestination = proposal.SuggestedDestinationFolder;
+        IsEditing = true;
+    }
+
+    private void SaveEdit()
+    {
+        if (SelectedProposal != null)
+        {
+            SelectedProposal.SuggestedTitle = EditTitle;
+            SelectedProposal.SuggestedDestinationFolder = EditDestination;
+        }
+        IsEditing = false;
+    }
+
+    private void CancelEdit()
+    {
+        IsEditing = false;
+    }
+}

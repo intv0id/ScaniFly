@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @using ScaniFly.Services
 @inject UpdateService UpdateService
+@inject TrayService TrayService
 @inject IJSRuntime JSRuntime
 
 <div class="page">
@@ -28,7 +29,7 @@
 @code {
     protected override async Task OnInitializedAsync()
     {
-        // Fire and forget the update check (mock version '1.0.0')
+        TrayService.InitializeTray();
         _ = UpdateService.CheckForUpdatesAsync("1.0.0");
     }
 }
