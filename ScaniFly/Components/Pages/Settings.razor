@@ -135,16 +135,27 @@
     {
         if (HybridSupport.IsElectronActive)
         {
-            var mainWindow = Electron.WindowManager.BrowserWindows.First();
-            var options = new OpenDialogOptions
+            try
             {
-                Properties = new OpenDialogProperty[] { OpenDialogProperty.openDirectory }
-            };
+                var mainWindow = Electron.WindowManager.BrowserWindows.FirstOrDefault();
+                if (mainWindow != null)
+                {
+                    var options = new OpenDialogOptions
+                    {
+                        Properties = new OpenDialogProperty[] { OpenDialogProperty.openDirectory }
+                    };
 
-            string[] result = await Electron.Dialog.ShowOpenDialogAsync(mainWindow, options);
-            if (result.Length > 0)
+                    string[] result = await Electron.Dialog.ShowOpenDialogAsync(mainWindow, options);
+                    if (result != null && result.Length > 0)
+                    {
+                        ViewModel.MonitoredDirectory = result[0];
+                        await InvokeAsync(StateHasChanged);
+                    }
+                }
+            }
+            catch (Exception ex)
             {
-                ViewModel.MonitoredDirectory = result[0];
+                Console.WriteLine($"Error opening dialog: {ex.Message}");
             }
         }
         else
@@ -157,16 +168,27 @@
     {
         if (HybridSupport.IsElectronActive)
         {
-            var mainWindow = Electron.WindowManager.BrowserWindows.First();
-            var options = new OpenDialogOptions
+            try
             {
-                Properties = new OpenDialogProperty[] { OpenDialogProperty.openDirectory }
-            };
+                var mainWindow = Electron.WindowManager.BrowserWindows.FirstOrDefault();
+                if (mainWindow != null)
+                {
+                    var options = new OpenDialogOptions
+                    {
+                        Properties = new OpenDialogProperty[] { OpenDialogProperty.openDirectory }
+                    };
 
-            string[] result = await Electron.Dialog.ShowOpenDialogAsync(mainWindow, options);
-            if (result.Length > 0)
+                    string[] result = await Electron.Dialog.ShowOpenDialogAsync(mainWindow, options);
+                    if (result != null && result.Length > 0)
+                    {
+                        ViewModel.OutputDirectory = result[0];
+                        await InvokeAsync(StateHasChanged);
+                    }
+                }
+            }
+            catch (Exception ex)
             {
-                ViewModel.OutputDirectory = result[0];
+                Console.WriteLine($"Error opening dialog: {ex.Message}");
             }
         }
         else
