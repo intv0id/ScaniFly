@@ -4,6 +4,7 @@
 @inject ProposalStateService ProposalStateService
 @inject HistoryService HistoryService
 @inject SettingsService SettingsService
+@inject NavigationManager NavManager
 @implements IDisposable
 
 <PageTitle>Proposals - ScaniFly</PageTitle>
@@ -128,6 +129,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!(await SettingsService.IsConfiguredAsync()))
+        {
+            NavManager.NavigateTo("/settings");
+            return;
+        }
+
         ProposalStateService.OnStateChanged += StateHasChanged;
         var settings = await SettingsService.GetSettingsAsync();
         RootOutputDir = settings.OutputDirectory;

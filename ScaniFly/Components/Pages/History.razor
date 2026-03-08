@@ -3,6 +3,8 @@
 @using ScaniFly.Services
 @using ElectronNET.API
 @inject HistoryService HistoryService
+@inject SettingsService SettingsService
+@inject NavigationManager NavManager
 
 <PageTitle>History - ScaniFly</PageTitle>
 
@@ -89,6 +91,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!(await SettingsService.IsConfiguredAsync()))
+        {
+            NavManager.NavigateTo("/settings");
+            return;
+        }
         ProcessedHistory = await HistoryService.GetHistoryAsync();
     }
 

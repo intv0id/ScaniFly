@@ -6,6 +6,7 @@
 @using ElectronNET.API.Entities
 @inject SettingsService SettingsService
 @inject OllamaService OllamaService
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Settings - ScaniFly</PageTitle>
 
@@ -146,6 +147,10 @@
                 ViewModel.MonitoredDirectory = result[0];
             }
         }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Native folder selection is only available when running within the Electron desktop app. Please enter the path manually.");
+        }
     }
 
     private async Task BrowseOutputDirectory()
@@ -163,6 +168,10 @@
             {
                 ViewModel.OutputDirectory = result[0];
             }
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Native folder selection is only available when running within the Electron desktop app. Please enter the path manually.");
         }
     }
 }

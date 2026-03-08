@@ -20,8 +20,7 @@ ScaniFly is an open-source, AI-powered desktop application designed to automatic
 Visit the [GitHub Releases](https://github.com/YOUR_ORG/ScaniFly/releases/latest) page to download the latest installer for Windows (`.exe`) or macOS (`.dmg`).
 
 ## Screenshots
-<img src="https://raw.githubusercontent.com/intv0id/ScaniFly/95835b8cbc0f04920da5e99c731a66bd21a887d3/docs/settings.png" width="400"/>
-<img src="https://raw.githubusercontent.com/intv0id/ScaniFly/95835b8cbc0f04920da5e99c731a66bd21a887d3/docs/proposals.png" width="400"/>
+<!-- SCREENSHOT_PLACEHOLDER -->
 
 ## License
 MIT

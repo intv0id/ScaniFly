@@ -1,3 +1,6 @@
+@inject ScaniFly.Services.SettingsService SettingsService
+@implements IDisposable
+
 <div class="sidebar-header">
     <div class="sidebar-logo">
         <i class="bi bi-file-earmark-text-fill"></i>
@@ -5,23 +8,57 @@
     <h1 class="sidebar-title">ScaniFly</h1>
 </div>
 
-<ul class="nav-menu">
+<ul class="nav-menu d-flex flex-column h-100">
     <li class="nav-item">
-        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+        <NavLink class="@($"nav-link {(IsConfigured ? string.Empty : "disabled text-muted")}")" href="" Match="NavLinkMatch.All">
             <i class="bi bi-inboxes"></i>
             <span>Proposals</span>
         </NavLink>
     </li>
     <li class="nav-item">
-        <NavLink class="nav-link" href="history">
+        <NavLink class="@($"nav-link {(IsConfigured ? string.Empty : "disabled text-muted")}")" href="history">
             <i class="bi bi-clock-history"></i>
             <span>History</span>
         </NavLink>
     </li>
-    <li class="nav-item">
+    <li class="nav-item mt-auto border-top pt-2">
         <NavLink class="nav-link" href="settings">
             <i class="bi bi-gear"></i>
             <span>Settings</span>
         </NavLink>
     </li>
 </ul>
+
+<style>
+    .nav-link.disabled {
+        pointer-events: none;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+</style>
+
+@code {
+    private bool IsConfigured = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        SettingsService.OnSettingsChanged += OnSettingsChangedHandler;
+        await CheckConfigAsync();
+    }
+
+    private async void OnSettingsChangedHandler()
+    {
+        await CheckConfigAsync();
+    }
+
+    private async Task CheckConfigAsync()
+    {
+        IsConfigured = await SettingsService.IsConfiguredAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        SettingsService.OnSettingsChanged -= OnSettingsChangedHandler;
+    }
+}

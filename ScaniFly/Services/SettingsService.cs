@@ -6,6 +6,7 @@ namespace ScaniFly.Services;
 public class SettingsService
 {
     private readonly string _settingsFilePath;
+    public event Action? OnSettingsChanged;
 
     public SettingsService()
     {
@@ -40,5 +41,13 @@ public class SettingsService
     {
         string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
         await File.WriteAllTextAsync(_settingsFilePath, json);
+        OnSettingsChanged?.Invoke();
+    }
+
+    public async Task<bool> IsConfiguredAsync()
+    {
+        var settings = await GetSettingsAsync();
+        return !string.IsNullOrEmpty(settings.MonitoredDirectory)
+            && !string.IsNullOrEmpty(settings.OutputDirectory);
     }
 }

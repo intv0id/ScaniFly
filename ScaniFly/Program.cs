@@ -43,6 +43,17 @@ app.MapRazorComponents<ScaniFly.Components.App>()
 
 if (ElectronNET.API.HybridSupport.IsElectronActive)
 {
-    Task.Run(async () => await ElectronNET.API.Electron.WindowManager.CreateWindowAsync());
+    Task.Run(async () =>
+    {
+        var window = await ElectronNET.API.Electron.WindowManager.CreateWindowAsync(new ElectronNET.API.Entities.BrowserWindowOptions
+        {
+            Width = 1200,
+            Height = 800,
+            Show = false
+        });
+        await window.WebContents.Session.ClearCacheAsync();
+        window.OnReadyToShow += () => window.Show();
+        window.SetTitle("ScaniFly");
+    });
 }
 app.Run();
