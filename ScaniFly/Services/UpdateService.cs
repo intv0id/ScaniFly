@@ -1,12 +1,14 @@
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using ElectronNET.API;
+using System.Net;
 
 namespace ScaniFly.Services;
 
 public class UpdateService
 {
     private readonly HttpClient _httpClient;
+    // Replace YOUR_ORG with the actual GitHub organization or user once published
     private const string RepoApiUrl = "https://api.github.com/repos/YOUR_ORG/ScaniFly/releases/latest";
 
     public UpdateService(HttpClient httpClient)
@@ -19,7 +21,18 @@ public class UpdateService
     {
         try
         {
-            var release = await _httpClient.GetFromJsonAsync<GithubRelease>(RepoApiUrl);
+            var response = await _httpClient.GetAsync(RepoApiUrl);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                // Silently ignore 404s. This happens if the repository is private,
+                // doesn't exist yet, or hasn't published its first release.
+                return false;
+            }
+
+            response.EnsureSuccessStatusCode();
+
+            var release = await response.Content.ReadFromJsonAsync<GithubRelease>();
             if (release != null && release.TagName != $"v{currentVersion}")
             {
                 if (HybridSupport.IsElectronActive)
@@ -32,17 +45,23 @@ public class UpdateService
                         Buttons = new[] { "Yes", "No" }
                     };
 
-                    var mainWindow = Electron.WindowManager.BrowserWindows.First();
-                    var result = await Electron.Dialog.ShowMessageBoxAsync(mainWindow, options);
-
-                    if (result.Response == 0) // "Yes" clicked
+                    var mainWindow = Electron.WindowManager.BrowserWindows.FirstOrDefault();
+                    if (mainWindow != null)
                     {
-                        // Open default browser to download link
-                        await Electron.Shell.OpenExternalAsync(release.HtmlUrl);
+                        var result = await Electron.Dialog.ShowMessageBoxAsync(mainWindow, options);
+
+                        if (result.Response == 0) // "Yes" clicked
+                        {
+                            await Electron.Shell.OpenExternalAsync(release.HtmlUrl);
+                        }
                     }
                 }
                 return true;
             }
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Network error checking for updates: {ex.Message}");
         }
         catch (Exception ex)
         {
