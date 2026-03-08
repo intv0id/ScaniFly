@@ -25,13 +25,15 @@ jobs:
         dotnet restore ScaniFly/ScaniFly.csproj
         dotnet restore ScaniFly.UITests/ScaniFly.UITests.csproj
 
+    - name: Build App & Tests
+      run: |
+        dotnet build ScaniFly/ScaniFly.csproj -c Release
+        dotnet build ScaniFly.UITests/ScaniFly.UITests.csproj -c Release
+
     - name: Install Playwright Browsers
       run: |
-        dotnet tool install --global Microsoft.Playwright.CLI
-        playwright install chromium
-
-    - name: Build App
-      run: dotnet build ScaniFly/ScaniFly.csproj -c Release
+        cd ScaniFly.UITests
+        pwsh bin/Release/net10.0/playwright.ps1 install --with-deps chromium
 
     - name: Run App in Background
       run: dotnet run --project ScaniFly/ScaniFly.csproj -c Release --urls "http://localhost:5000" &
