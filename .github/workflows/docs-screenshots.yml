@@ -7,13 +7,42 @@ on:
     branches: [ "main" ]
 
 jobs:
-  update-docs:
+  generate-screenshots:
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
     - uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore Dependencies
+      run: |
+        dotnet restore ScaniFly/ScaniFly.csproj
+        dotnet restore ScaniFly.UITests/ScaniFly.UITests.csproj
+
+    - name: Install Playwright Browsers
+      run: |
+        dotnet tool install --global Microsoft.Playwright.CLI
+        playwright install chromium
+
+    - name: Build App
+      run: dotnet build ScaniFly/ScaniFly.csproj -c Release
+
+    - name: Run App in Background
+      run: dotnet run --project ScaniFly/ScaniFly.csproj -c Release --urls "http://localhost:5000" &
+      env:
+        ASPNETCORE_ENVIRONMENT: Development
+
+    - name: Wait for App to Start
+      run: sleep 10
+
+    - name: Run UI Tests to Capture Screenshots
+      run: dotnet test ScaniFly.UITests/ScaniFly.UITests.csproj -c Release
 
     - name: Ensure Docs Directory Exists
       run: mkdir -p docs
@@ -44,4 +73,4 @@ jobs:
     - name: Commit changes
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: "docs: Auto-update screenshots in README"
+        commit_message: "docs: Auto-update screenshots in README and docs folder"
