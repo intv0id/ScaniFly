@@ -1,0 +1,109 @@
+@page "/history"
+@using ScaniFly.Models
+@using ScaniFly.Services
+@using ElectronNET.API
+@inject HistoryService HistoryService
+@inject SettingsService SettingsService
+@inject NavigationManager NavManager
+
+<PageTitle>History - ScaniFly</PageTitle>
+
+<div class="px-5 py-4 w-100" style="max-width: 1200px; margin: 0 auto;">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h2 style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">Processing History</h2>
+            <p class="text-muted mb-0">Review previously categorized and moved documents.</p>
+        </div>
+        <div class="badge bg-light text-dark border px-3 py-2 fs-6 fw-normal">
+            Total Processed: @ProcessedHistory?.Count
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-muted small text-uppercase" style="border-bottom: 2px solid var(--border-color);">
+                    <tr>
+                        <th scope="col" class="py-3 px-4 fw-semibold border-0">Date & Time</th>
+                        <th scope="col" class="py-3 px-4 fw-semibold border-0">Original File</th>
+                        <th scope="col" class="py-3 px-4 fw-semibold border-0">New Document Name</th>
+                        <th scope="col" class="py-3 px-4 fw-semibold border-0">Destination</th>
+                        <th scope="col" class="py-3 px-4 fw-semibold border-0 text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    @if (ProcessedHistory == null)
+                    {
+                         <tr>
+                             <td colspan="5" class="text-center py-5 text-muted">
+                                 <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading history...
+                             </td>
+                         </tr>
+                    }
+                    else if (ProcessedHistory.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-clock-history display-4 mb-3 d-block text-secondary"></i>
+                                <p class="fs-5 mb-0">No processing history found.</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in ProcessedHistory.OrderByDescending(h => h.ProcessedAt))
+                        {
+                            <tr>
+                                <td class="py-3 px-4 text-nowrap text-secondary small">
+                                    @item.ProcessedAt.ToString("MMM dd, yyyy") <br/>
+                                    <span class="text-muted">@item.ProcessedAt.ToString("HH:mm:ss")</span>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="text-truncate d-inline-block text-secondary" style="max-width: 200px;" title="@Path.GetFileName(item.OriginalFilePath)">
+                                        <i class="bi bi-file-earmark text-muted me-1"></i> @Path.GetFileName(item.OriginalFilePath)
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 fw-medium text-dark">
+                                    <i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i>@item.SuggestedTitle
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="badge bg-light text-dark border d-inline-flex align-items-center py-1 px-2 fw-normal" title="@item.SuggestedDestinationFolder">
+                                        <i class="bi bi-folder-fill text-warning me-2"></i>
+                                        <span class="text-truncate d-inline-block" style="max-width: 150px;">@item.SuggestedDestinationFolder</span>
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-end">
+                                    <button class="btn btn-light btn-sm border text-primary fw-medium px-3 hover-bg-gray" @onclick="() => OpenFolder(item.SuggestedDestinationFolder)">
+                                        Open Folder
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<DocumentProposal>? ProcessedHistory;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!(await SettingsService.IsConfiguredAsync()))
+        {
+            NavManager.NavigateTo("/settings");
+            return;
+        }
+        ProcessedHistory = await HistoryService.GetHistoryAsync();
+    }
+
+    private async Task OpenFolder(string folderPath)
+    {
+        if (HybridSupport.IsElectronActive)
+        {
+            await Electron.Shell.OpenPathAsync(folderPath);
+        }
+    }
+}

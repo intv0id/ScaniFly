@@ -1,0 +1,25 @@
+{
+  "executable": "ScaniFly",
+  "splashscreen": {
+    "imageFile": ""
+  },
+  "name": "ScaniFly",
+  "author": "YOUR_ORG",
+  "singleInstance": false,
+  "environment": "Production",
+  "build": {
+    "appId": "com.scanifly.app",
+    "productName": "ScaniFly",
+    "copyright": "Copyright © 2024",
+    "buildVersion": "1.0.0",
+    "mac": {
+      "category": "public.app-category.productivity"
+    },
+    "win": {
+      "target": ["msi", "nsis"]
+    },
+    "linux": {
+      "target": ["AppImage", "deb"]
+    }
+  }
+}

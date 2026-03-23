@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  build-electron:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            electronize_target: win
+            asset_name: ScaniFly-Setup.exe
+            asset_path: ScaniFly/bin/desktop/ScaniFly Setup *.exe
+          - os: macos-latest
+            electronize_target: osx
+            asset_name: ScaniFly.dmg
+            asset_path: ScaniFly/bin/desktop/*.dmg
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+    - name: Setup Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+    - name: Install ElectronNET CLI
+      run: dotnet tool install ElectronNET.CLI -g
+    - name: Build Electron App
+      run: |
+        cd ScaniFly
+        electronize build /target ${{ matrix.electronize_target }}
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.asset_name }}
+        path: ${{ matrix.asset_path }}
+
+  create-release:
+    needs: build-electron
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v3
+    - name: Download Windows Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: ScaniFly-Setup.exe
+    - name: Download macOS Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: ScaniFly.dmg
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          *.exe
+          *.dmg

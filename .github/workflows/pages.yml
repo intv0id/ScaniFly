@@ -1,0 +1,60 @@
+name: Deploy GitHub Pages
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Generate Static HTML
+        run: |
+          mkdir -p public
+          cat << 'HTML_EOF' > public/index.html
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>ScaniFly - Organize your scans</title>
+              <style>body { font-family: sans-serif; text-align: center; padding: 50px; } .btn { padding: 10px 20px; background: #0d6efd; color: white; text-decoration: none; border-radius: 5px; } .warning { margin-top: 30px; padding: 15px; background: #fff3cd; color: #856404; } .screens { margin-top: 40px; display: flex; justify-content: center; gap: 20px; } .screens img { width: 400px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }</style>
+          </head>
+          <body>
+              <h1>ScaniFly</h1>
+              <p>Locally organize your scanned PDFs using AI semantics.</p>
+              <h2>Download Latest Version</h2>
+              <a href="https://github.com/YOUR_ORG/ScaniFly/releases/latest/download/ScaniFly-Setup.exe" class="btn">Download for Windows</a>
+              <a href="https://github.com/YOUR_ORG/ScaniFly/releases/latest/download/ScaniFly.dmg" class="btn" style="margin-left: 10px;">Download for macOS</a>
+              <div class="screens">
+                  <img src="https://raw.githubusercontent.com/${{ github.repository }}/main/docs/settings.png" alt="Settings Page">
+                  <img src="https://raw.githubusercontent.com/${{ github.repository }}/main/docs/proposals.png" alt="Proposals Page">
+              </div>
+              <div class="warning">
+                  <strong>⚠️ Dependency Warning:</strong> ScaniFly requires <a href="https://ollama.com">Ollama</a> to be installed and running locally for AI capabilities.
+              </div>
+          </body>
+          </html>
+          HTML_EOF
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: './public'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
